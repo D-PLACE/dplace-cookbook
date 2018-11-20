@@ -101,7 +101,7 @@ Notes:
   ```
 - Our file only contains numeric codes, not the labels (e.g. "Bride-wealth").
 
-Adding the code labels is easy, though, using the really powerful `csvsql` command:
+Adding the code labels is easy, though, using the really powerful [`csvsql`](https://csvkit.readthedocs.io/en/1.0.3/scripts/csvsql.html) command:
 ```bash
 $ csvsql --query "select d.soc_id, d.sub_case, d.year, d.code, c.name, c.description, d.comment from 'EA006' as d, 'codes' as c where d.var_id = c.var_id and d.code = c.code" EA006.csv dplace-data/datasets/EA/codes.csv > EA006_with_code_names.csv
 ```
