@@ -101,6 +101,17 @@ Notes:
   ```
 - Our file only contains numeric codes, not the labels (e.g. "Bride-wealth").
 
-Adding the code labels is easy, though:
+Adding the code labels is easy, though, using the really powerful `csvsql` command:
 ```bash
+$ csvsql --query "select d.soc_id, d.sub_case, d.year, d.code, c.name, c.description, d.comment from 'EA006' as d, 'codes' as c where d.var_id = c.var_id and d.code = c.code" EA006.csv dplace-data/datasets/EA/codes.csv > EA006_with_code_names.csv
 ```
+Here, we join two CSV files on matching `var_id` and `code`, and select the columns we are interested in.
+
+Note that `csvsql` can be used to perfom 1. and 2. above, and additionally pulling in society names:
+```bash
+$ csvsql --query "select d.soc_id, s.pref_name_for_society, d.sub_case, d.year, d.code, c.name from data as d, codes as c, societies as s where d.var_id = c.var_id and d.code = c.code and s.id = d.soc_id and d.var_id = 'EA006'" \
+dplace-data/datasets/EA/data.csv \
+dplace-data/datasets/EA/codes.csv \
+dplace-data/datasets/EA/societies.csv > EA006.cs
+```
+
