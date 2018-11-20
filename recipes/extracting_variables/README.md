@@ -112,6 +112,6 @@ Note that `csvsql` can be used to perfom 1. and 2. above, and additionally pulli
 $ csvsql --query "select d.soc_id, s.pref_name_for_society, d.sub_case, d.year, d.code, c.name from data as d, codes as c, societies as s where d.var_id = c.var_id and d.code = c.code and s.id = d.soc_id and d.var_id = 'EA006'" \
 dplace-data/datasets/EA/data.csv \
 dplace-data/datasets/EA/codes.csv \
-dplace-data/datasets/EA/societies.csv > EA006.cs
+dplace-data/datasets/EA/societies.csv > EA006.csv
 ```
 
