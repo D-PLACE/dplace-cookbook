@@ -115,3 +115,15 @@ dplace-data/datasets/EA/codes.csv \
 dplace-data/datasets/EA/societies.csv > EA006.csv
 ```
 
+3. Pulling in language metadata - such as the language family a society is associated with - can again be done by joining
+data from a separate file: [`dplace-data/csv/glottolog.csv`](https://github.com/D-PLACE/dplace-data/blob/master/csv/glottolog.csv). The `glottocode` column in a dataset's `societies.csv` table is a [foreign key](https://en.wikipedia.org/wiki/Foreign_key), i.e. a field that identifies a row in `glottolog.csv` - the one with matching `id` column.
+
+Thus, extending our query to
+```bash
+$ csvsql --query "select d.soc_id, s.pref_name_for_society, g.family_name, d.sub_case, d.year, d.code, c.name from data as d, codes as c, societies as s, glottolog as g where g.id = s.glottocode and d.var_id = c.var_id and d.code = c.code and s.id = d.soc_id and d.var_id = 'EA006'" \
+dplace-data/datasets/EA/data.csv \
+dplace-data/datasets/EA/codes.csv \
+dplace-data/csv/glottolog.csv \
+dplace-data/datasets/EA/societies.csv > EA006.csv
+```
+
