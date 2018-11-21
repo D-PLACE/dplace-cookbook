@@ -14,17 +14,20 @@ to work with CSV.
 So how to extract a table of values for a variable like [the one displayed in the web app](https://d-place.org/parameters/EA006#table-container)
 using csvkit?
 
-1. Let's inspect what `data.csv` looks like:
-   ```bash
-   $ head -n 2 dplace-data/datasets/EA/data.csv 
-   soc_id,sub_case,year,var_id,code,comment,references,source_coded_data,admin_comment
-   Aa1,Nyai Nyae region,1950,EA001,8,,biesele1972; biesele1975; biesele1976; draper1972; draper1975; drapernd; hansenetal1969; harpending1971; howell1979; howellnd; konner1971; konner1972; konner1973; konner1977; lee1966; lee1968; lee1972a; lee1974; lee1979; leeanddevore1976; marshall1956; marshall1957; marshall1957a; marshall1957b; marshall1958; marshall1959; marshall1960; marshall1961; marshall1962; marshall1965; marshall1976; marshallandmarshall1956; schapera1930; shostak1981; thomas1959; tobias1978,EthnographicAtlas_1967_p62,
-   ```
-   `var_id` is the name of the column holding the variable IDs. Thus, we can extract the subset we are interested in running
-   ```bash
-   $ csvgrep -c var_id -m EA006 dplace-data/datasets/EA/data.csv > EA006.csv
-   ```
-2. Inspecting the CSV file we just created with `csvstat` yields
+Let's inspect what `data.csv` looks like:
+```bash
+$ head -n 2 dplace-data/datasets/EA/data.csv 
+soc_id,sub_case,year,var_id,code,comment,references,source_coded_data,admin_comment
+Aa1,Nyai Nyae region,1950,EA001,8,,biesele1972; biesele1975; biesele1976; draper1972; draper1975; drapernd; hansenetal1969; harpending1971; howell1979; howellnd; konner1971; konner1972; konner1973; konner1977; lee1966; lee1968; lee1972a; lee1974; lee1979; leeanddevore1976; marshall1956; marshall1957; marshall1957a; marshall1957b; marshall1958; marshall1959; marshall1960; marshall1961; marshall1962; marshall1965; marshall1976; marshallandmarshall1956; schapera1930; shostak1981; thomas1959; tobias1978,EthnographicAtlas_1967_p62,
+```
+`var_id` is the name of the column holding the variable IDs. Thus, we can extract the subset we are interested in running
+```bash
+$ csvgrep -c var_id -m EA006 dplace-data/datasets/EA/data.csv > EA006.csv
+```
+
+## Adding code labels and society metadata
+
+Inspecting the CSV file we just created with `csvstat` yields
 ```bash
 $ csvstat EA006.csv   
   1. "soc_id"
@@ -115,7 +118,9 @@ dplace-data/datasets/EA/codes.csv \
 dplace-data/datasets/EA/societies.csv > EA006.csv
 ```
 
-3. Pulling in language metadata - such as the language family a society is associated with - can again be done by joining
+## Adding language metadata
+
+Pulling in language metadata - such as the language family a society is associated with - can again be done by joining
 data from a separate file: [`dplace-data/csv/glottolog.csv`](https://github.com/D-PLACE/dplace-data/blob/master/csv/glottolog.csv). The `glottocode` column in a dataset's `societies.csv` table is a [foreign key](https://en.wikipedia.org/wiki/Foreign_key), i.e. a field that identifies a row in `glottolog.csv` - the one with matching `id` column.
 
 Thus, extending our query to
@@ -126,4 +131,9 @@ dplace-data/datasets/EA/codes.csv \
 dplace-data/csv/glottolog.csv \
 dplace-data/datasets/EA/societies.csv > EA006.csv
 ```
-
+will add a `family_name` column to `EA006.csv`:
+```bash
+$ head -n 3 EA006.csv soc_id,pref_name_for_society,family_name,sub_case,year,code,name
+Aa1,!Kung,Kxa,Nyai Nyae region,1950,2,Bride-service
+Aa2,Dorobo,Nilotic,with special reference to Central Dorobo,1920,1,Bride-wealth
+```
