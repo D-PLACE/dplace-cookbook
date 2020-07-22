@@ -12,11 +12,15 @@ D-PLACE data can be accessed in a variety of ways.
 - It can be browsed and visualized in the [D-PLACE web application](https://d-place.org).
 - Released versions of the data can be downloaded from [ZENODO](https://doi.org/10.5281/zenodo.596376).
 - The [D-PLACE data repository on GitHub](https://github.com/d-place/dplace-data) can be forked and cloned, thus getting access to released version as well as work-in-progress.
+- A [CLDF](https://cldf.clld.org) version of the core D-PLACE data can be 
+  downloaded from [Zenodo](https://doi.org/10.5281/zenodo.3935419).
 
 Which of these options to choose?
 
 - If you want to get an overview of the kind an extent of data available in D-PLACE, browse the [D-PLACE web application](https://d-place.org).
 - If you want to use D-PLACE data for your own analyses, start with a released version from ZENODO.
+- If your analyses involve other linguistic datasets, the CLDF version could
+  make data merging a lot simpler and data access more unified.
 - If you want to contribute to D-PLACE - e.g. to fix errata - fork and clone the data repository.
 
 
