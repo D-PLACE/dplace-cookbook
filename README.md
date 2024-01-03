@@ -29,3 +29,6 @@ The aggregated D-PLACE CLDF data (starting from version 3.0) contains informatio
 - societies (from the included datasets) and languoids referenced in the included phylogenies, as items in a [LanguageTable](https://github.com/cldf/cldf/tree/master/components/languages)
 - variables (from the included datasets), as items in a [ParameterTable](https://github.com/cldf/cldf/tree/master/components/parameters)
 - the summary trees from the included phylogenies, as items in a [TreeTable](https://github.com/cldf/cldf/tree/master/components/trees)
+
+Most recipes in this cookbook assume a local directory looking like https://github.com/D-PLACE/dplace-cldf/tree/master/cldf .
+I.e. a clone of https://github.com/D-PLACE/dplace-cldf or an unzipped download of a released version.

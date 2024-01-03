@@ -1,12 +1,9 @@
 # How to extract data for selected variables from D-PLACE?
 
-Data in D-PLACE is organized in [datasets](https://github.com/D-PLACE/dplace-data/blob/master/datasets/README.md). Thus, the first step
-towards extracting data for a variable is locating the dataset the variable belongs to. If you found a variable of interest to you
-in the web app, e.g. [EA006](https://d-place.org/parameters/EA006), you already have all you need: The variable ID `EA006` and a
-link to the dataset it belongs to, the [Ethnographic Atlas](https://d-place.org/contributions/EA) with ID `EA`. So the datapoints
-for variable `EA006` must be extracted from all datapoints of the dataset `EA`, located at [`datasets/EA/data.csv`](https://github.com/D-PLACE/dplace-data/blob/master/datasets/EA/data.csv).
+The first step towards extracting data for a variable is finding its identifier. If you found a variable of interest to you
+in the web app, e.g. [EA006](https://d-place.org/parameters/EA006), you already have all you need: The variable ID `EA006`. 
 
-Since all data for a dataset is available as a set of [CSV files](https://en.wikipedia.org/wiki/Comma-separated_values), you can
+Since CLDF data is available as a set of [CSV files](https://en.wikipedia.org/wiki/Comma-separated_values), you can
 use your favorite CSV tool to extract and further manipulate the data you are interested in. In the following, we describe how to
 proceed with the tools from [csvkit](https://csvkit.readthedocs.io/en/1.0.3/index.html) - a suite of [command line tools](http://swcarpentry.github.io/shell-novice/)
 to work with CSV.
@@ -14,126 +11,129 @@ to work with CSV.
 So how to extract a table of values for a variable like [the one displayed in the web app](https://d-place.org/parameters/EA006#table-container)
 using csvkit?
 
-Let's inspect what `data.csv` looks like:
-```bash
-$ head -n 2 dplace-data/datasets/EA/data.csv 
-soc_id,sub_case,year,var_id,code,comment,references,source_coded_data,admin_comment
-Aa1,Nyai Nyae region,1950,EA001,8,,biesele1972; biesele1975; biesele1976; draper1972; draper1975; drapernd; hansenetal1969; harpending1971; howell1979; howellnd; konner1971; konner1972; konner1973; konner1977; lee1966; lee1968; lee1972a; lee1974; lee1979; leeanddevore1976; marshall1956; marshall1957; marshall1957a; marshall1957b; marshall1958; marshall1959; marshall1960; marshall1961; marshall1962; marshall1965; marshall1976; marshallandmarshall1956; schapera1930; shostak1981; thomas1959; tobias1978,EthnographicAtlas_1967_p62,
-```
-`var_id` is the name of the column holding the variable IDs. Thus, we can extract the subset we are interested in running
-```bash
-$ csvgrep -c var_id -m EA006 dplace-data/datasets/EA/data.csv > EA006.csv
+Let's inspect what `cldf/data.csv` looks like:
+```shell
+$ head -n 2 cldf/data.csv
+ID,Soc_ID,Var_ID,Value,Code_ID,Comment,Source,sub_case,year,source_coded_data,admin_comment
+binford-1,B1,B001,65,,,avadhani1975;brosius1986;harrison1949;kedit1982;oldrey1975;sellato1994;urquhart1951,,1970,Binford_2001_Table_5.01,
 ```
 
-## Adding code labels and society metadata
+`Var_ID` is the name of the column holding the variable IDs, so
+we can get an initial overview of the data for the variable running a command such as
+```shell
+$ csvgrep -c Var_ID -m EA006 cldf/data.csv | csvstat -c Value -y 0 --freq-count 10
+  4. "Value"
 
-Inspecting the CSV file we just created with `csvstat` yields
-```bash
-$ csvstat EA006.csv   
-  1. "soc_id"
-
-	Type of data:          Text
-	Contains null values:  False
-	Unique values:         1291
-	...
-
-  2. "sub_case"
-
-	Type of data:          Text
-	Contains null values:  True (excluded from calculations)
-	Unique values:         439
-	Most common values:    None (852x)
-	                       Those in contact with mission (2x)
-	                       Nyai Nyae region (1x)
-	                       with special reference to Central Dorobo (1x)
-	                       Gei/Khauan tribe (1x)
-
-  3. "year"
-
-	Type of data:          Number
-	Contains null values:  True (excluded from calculations)
-	Unique values:         68
-	Smallest value:        -2.000
-	Largest value:         1.965
-	Most common values:    1.920 (193x)
-	                       1.950 (166x)
-	                       1.930 (166x)
-	                       1.900 (120x)
-	                       1.910 (112x)
-
-  ...
-
-  5. "code"
-
-	Type of data:          Number
-	Contains null values:  True (excluded from calculations)
-	Unique values:         8
-	Smallest value:        1
-	Largest value:         7
-	Most common values:    1 (657x)
-	                       6 (275x)
-	                       2 (125x)
-	                       3 (68x)
-	                       4 (65x)
-
-  6. "comment"
-
-	Type of data:          Text
-	Contains null values:  True (excluded from calculations)
-
-  7. "references"
-
-	Type of data:          Text
-	Contains null values:  True (excluded from calculations)
-	
-  ...
+        Type of data:          Text
+        Contains null values:  True (excluded from calculations)
+        Unique values:         8
+        Longest value:         18, characters
+        Most common values:    Bride-wealth (657x)
+                               Insignificant (275x)
+                               Bride-service (125x)
+                               Token bride-wealth (68x)
+                               Gift exchange (65x)
+                               Dowry (43x)
+                               Woman exchange (39x)
+                               None (19x)
 
 Row count: 1291
 ```
-Notes:
-- Since the `soc_id` column contains 1291 unique values (in 1291 rows), there's exactly one value per society for this variable. 
-  (This is not generally the case for D-PLACE variables.)
-- Our file contains more rows than th table in the web app, but this discrepancy can be explained by the web app omitting `NA`
-  values:
-  ```
-  $ csvgrep -c code -m NA EA006.csv 
-  soc_id,sub_case,year,var_id,code,comment,references,source_coded_data,admin_comment
-  Ca27,,,EA006,NA,,,,
-  Cc15,,,EA006,NA,,,,
-  ...
-  ```
-- Our file only contains numeric codes, not the labels (e.g. "Bride-wealth").
 
-Adding the code labels is easy, though, using the really powerful [`csvsql`](https://csvkit.readthedocs.io/en/1.0.3/scripts/csvsql.html) command:
-```bash
-$ csvsql --query "select d.soc_id, d.sub_case, d.year, d.code, c.name, c.description, d.comment from 'EA006' as d, 'codes' as c where d.var_id = c.var_id and d.code = c.code" EA006.csv dplace-data/datasets/EA/codes.csv > EA006_with_code_names.csv
+Note that the 19 rows with `NULL` values (aka `None` or `NA`) are not loaded into the web app. Thus,
+the web app shows 1272 rows for the values of `EA006`.
+
+`Soc_ID` is the name of the column linking values to societies. Let's have a look at it:
+```shell
+$ csvgrep -c Var_ID -m EA006 ../dplace-cldf/cldf/data.csv | csvstat -c Soc_ID -y 0
+  2. "Soc_ID"
+
+        Type of data:          Text
+        Contains null values:  False
+        Unique values:         1291
+        Longest value:         5, characters
+        Most common values:    Aa1 (1x)
+                               Aa2 (1x)
+                               Aa3 (1x)
+                               Aa4 (1x)
+                               Aa5 (1x)
+
+Row count: 1291
 ```
-Here, we join two CSV files on matching `var_id` and `code`, and select the columns we are interested in.
+Since the `Soc_ID` column contains 1291 unique values (in 1291 rows), there's exactly one value per society for this variable. 
+(This is not generally the case for D-PLACE variables.)
 
-Note that `csvsql` can be used to perfom 1. and 2. above, and additionally pulling in society names:
-```bash
-$ csvsql --query "select d.soc_id, s.pref_name_for_society, d.sub_case, d.year, d.code, c.name from data as d, codes as c, societies as s where d.var_id = c.var_id and d.code = c.code and s.id = d.soc_id and d.var_id = 'EA006'" \
-dplace-data/datasets/EA/data.csv \
-dplace-data/datasets/EA/codes.csv \
-dplace-data/datasets/EA/societies.csv > EA006.csv
+Let's use the really powerful [`csvsql`](https://csvkit.readthedocs.io/en/1.0.3/scripts/csvsql.html) command to
+pull in society names:
+```shell
+$ csvsql --query "select d.Value, s.Name, d.year, d.sub_case from data as d, societies as s where d.Value is not null and d.Soc_ID = s.ID and d.Var_ID = 'EA006' order by d.Code_ID, s.Name" cldf/data.csv cldf/societies.csv 
+```
+The resulting rows look already a lot like the table in the web app:
+
+Value | Name | year | sub_case
+--- | --- | --- | ---
+Bride-wealth | Ababda | 1920 | 
+Bride-wealth | Abarambo | 1890 | 
+Bride-wealth | Abelam | 1930 | Kalabu; Northern Abelam
+Bride-wealth | Abipón | 1800 | Those in contact with mission
+Bride-wealth | Abron | 1900 | 
+Bride-wealth | Acholi | 1920 | 
+Bride-wealth | Achumawi | 1860 | 
+Bride-wealth | Adangme | 1940 | with special reference to the Krobo
+Bride-wealth | Adi | 1940 | 
+Bride-wealth | Afar | 1880 | 
+
+The only piece of data we are missing is the name of the top-level language family associated with the
+language spoken by the society.
+
+We can pull in this information by looking it up in the [Glottolog CLDF dataset](https://doi.org/10.5281/zenodo.8131091).
+After downloading and unzipping the release data, we can look up the family names with a query like
+```sql
+SELECT
+    d.Value, s.Name, l2.Name, d.year, d.sub_case 
+FROM 
+    data AS d, 
+    societies AS s, 
+    languages AS l1 
+LEFT JOIN languages AS l2 
+    ON l1.Family_ID = l2.ID 
+WHERE 
+    s.Glottocode = l1.ID 
+    AND d.Value IS NOT NULL 
+    AND d.Soc_ID = s.ID 
+    AND d.Var_ID = 'EA006' 
+ORDER BY d.Code_ID, s.Name
+```
+as
+```shell
+$ csvsql --query "select d.Value, s.Name, l2.Name, d.year, d.sub_case from data as d, societies as s, languages as l1 left join languages as l2 on l1.Family_ID = l2.ID where s.Glottocode = l1.ID and d.Value is not null and d.Soc_ID = s.ID and d.Var_ID = 'EA006' order by d.Code_ID, s.Name limit 20" ../dplace-cldf/cldf/data.csv ../dplace-cldf/cldf/societies.csv glottolog-cldf/cldf/languages.csv
 ```
 
-## Adding language metadata
+Value | Name               | Name | year | sub_case
+--- |--------------------| --- | --- | ---
+Bride-wealth | Ababda             | Afro-Asiatic | 1920 | 
+Bride-wealth | Abarambo           | Atlantic-Congo | 1890 | 
+Bride-wealth | Abelam             | Ndu | 1930 | Kalabu; Northern Abelam
+Bride-wealth | Abipón             | Guaicuruan | 1800 | Those in contact with mission
+Bride-wealth | Abron              | Atlantic-Congo | 1900 | 
+Bride-wealth | Acholi             | Nilotic | 1920 | 
+Bride-wealth | Achumawi           | Palaihnihan | 1860 | 
+Bride-wealth | Adangme            | Atlantic-Congo | 1940 | with special reference to the Krobo
+Bride-wealth | Adi                | Sino-Tibetan | 1940 | 
+Bride-wealth | Afar               | Afro-Asiatic | 1880 | 
+Bride-wealth | Afikpo             | Atlantic-Congo | 1950 | with special reference to the village of Mgbom
+Bride-wealth | Akyem              | Atlantic-Congo | 1930 | with special reference to the Kwahu
+Bride-wealth | Algerians          | Afro-Asiatic | 1870 | 
+Bride-wealth | Alorese            | Timor-Alor-Pantar | 1940 | Abui of Atimelang Village
+Bride-wealth | Alsea              |  | 1860 | 
+Bride-wealth | Alur               | Nilotic | 1890 | 
+Bride-wealth | Amarar             | Afro-Asiatic | 1930 | 
+Bride-wealth | Ambo               | Atlantic-Congo | 1910 | with special reference to the Kuanyama
+Bride-wealth | Ambonese           | Austronesian | 1950 | Allang
+Bride-wealth | Ancient Egyptians  | Afro-Asiatic | -1400 | with special reference to the New Empire
 
-Pulling in language metadata - such as the language family a society is associated with - can again be done by joining
-data from a separate file: [`dplace-data/csv/glottolog.csv`](https://github.com/D-PLACE/dplace-data/blob/master/csv/glottolog.csv). The `glottocode` column in a dataset's `societies.csv` table is a [foreign key](https://en.wikipedia.org/wiki/Foreign_key), i.e. a field that identifies a row in `glottolog.csv` - the one with matching `id` column.
 
-Thus, extending our query to
-```bash
-$ csvsql --query "select d.soc_id, s.pref_name_for_society, g.family_name, d.sub_case, d.year, d.code, c.name from data as d, codes as c, societies as s, glottolog as g where g.id = s.glottocode and d.var_id = c.var_id and d.code = c.code and s.id = d.soc_id and d.var_id = 'EA006'" \
-dplace-data/datasets/EA/data.csv \
-dplace-data/datasets/EA/codes.csv \
-dplace-data/csv/glottolog.csv \
-dplace-data/datasets/EA/societies.csv > EA006.csv
-```
-will add a `family_name` column to `EA006.csv`:
-```bash
-$ head -n 3 EA006.csv soc_id,pref_name_for_society,family_name,sub_case,year,code,name
-Aa1,!Kung,Kxa,Nyai Nyae region,1950,2,Bride-service
-Aa2,Dorobo,Nilotic,with special reference to Central Dorobo,1920,1,Bride-wealth
-```
+Note that we had to join Glottolog's `languages.csv` twice - one time to find the family Glottocode
+associated with a language and then to look up the name of the family. The `LEFT JOIN` used for the
+second join makes sure we don't drop isolates, i.e. rows where the language does not belong to any
+family (e.g. Alsea).
